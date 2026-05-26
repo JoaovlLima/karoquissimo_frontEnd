@@ -12,7 +12,8 @@ import {
   LogOut,
   Menu,
   X,
-  Store
+  Store,
+  ShoppingBag
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -56,9 +57,9 @@ export const DashboardLayout: React.FC = () => {
           </div>
           <div>
             <h1 className="font-bold text-base leading-tight text-slate-900">
-              Karoquíssimo
+              {user?.companyName ?? '—'}
             </h1>
-            <span className="text-xs text-slate-400">Painel de Estoque</span>
+            <span className="text-xs text-slate-400">CodaraStoke</span>
           </div>
         </div>
 
@@ -86,6 +87,18 @@ export const DashboardLayout: React.FC = () => {
               </Link>
             );
           })}
+
+          {/* Catálogo público — abre em nova aba */}
+          <a
+            href={`/catalogo/${user?.companyId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setIsMobileOpen(false)}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 text-slate-500 hover:bg-slate-50 hover:text-slate-800 border border-transparent"
+          >
+            <ShoppingBag size={17} className="text-slate-400" />
+            <span>Catálogo</span>
+          </a>
         </nav>
       </div>
 
@@ -158,7 +171,7 @@ export const DashboardLayout: React.FC = () => {
               <Menu size={19} />
             </button>
             <div className="hidden md:flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-              <span>Karoquíssimo</span>
+              <span>{user?.companyName ?? 'CodaraStoke'}</span>
               <span>/</span>
               <span className="text-amber-600 font-semibold">{getPageTitle()}</span>
             </div>

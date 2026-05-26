@@ -193,7 +193,7 @@ export function Clientes() {
   };
 
   return (
-    <div className="space-y-6 bg-white text-slate-800">
+    <div className="space-y-6 bg-white px-4 text-slate-800 md:px-0">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Clientes</h1>
@@ -220,7 +220,53 @@ export function Clientes() {
         />
       </div>
 
-      <div className="overflow-hidden rounded-md border border-slate-200 bg-white">
+      <div className="space-y-3 md:hidden">
+        {clientesQuery.isLoading && (
+          <div className="rounded-lg border border-slate-200 p-4 text-center text-sm text-slate-500">
+            Carregando clientes...
+          </div>
+        )}
+        {clientesQuery.isError && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center text-sm text-red-600">
+            Não foi possível carregar os clientes.
+          </div>
+        )}
+        {clientesQuery.data?.length === 0 && (
+          <div className="rounded-lg border border-slate-200 p-4 text-center text-sm text-slate-500">
+            Nenhum cliente encontrado.
+          </div>
+        )}
+        {clientesQuery.data?.map(cliente => (
+          <div key={cliente.id} className="rounded-lg border border-slate-200 bg-white p-4">
+            <div className="space-y-1">
+              <h3 className="font-semibold text-slate-800">{cliente.fullName}</h3>
+              <p className="text-sm text-slate-500">CPF: {cliente.cpf}</p>
+              <p className="text-sm text-slate-500">Telefone: {cliente.phone}</p>
+              <p className="text-sm text-slate-500">{cliente.city}/{cliente.state}</p>
+            </div>
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                onClick={() => openEditModal(cliente)}
+                className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-md border border-slate-200 text-sm font-semibold text-slate-600 transition-colors hover:border-amber-600 hover:text-amber-600"
+              >
+                <Edit2 size={16} />
+                Editar
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRemove(cliente)}
+                className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-md border border-slate-200 text-sm font-semibold text-slate-600 transition-colors hover:border-red-500 hover:text-red-600"
+              >
+                <Trash2 size={16} />
+                Inativar
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="hidden overflow-hidden rounded-md border border-slate-200 bg-white md:block">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200 text-sm">
             <thead className="bg-slate-50">
@@ -293,8 +339,8 @@ export function Clientes() {
       </div>
 
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
-          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-md border border-slate-200 bg-white shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-2 sm:p-4">
+          <div className="mx-2 max-h-[94vh] w-full overflow-y-auto rounded-md border border-slate-200 bg-white shadow-xl sm:max-w-4xl">
             <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
               <div>
                 <h2 className="text-lg font-semibold text-slate-800">

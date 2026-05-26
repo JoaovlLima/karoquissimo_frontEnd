@@ -263,7 +263,7 @@ export function Produtos() {
   const isSaving = uploadingPhoto || createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className="space-y-6 bg-white text-slate-800">
+    <div className="space-y-6 bg-white px-4 text-slate-800 md:px-0">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Produtos</h1>
@@ -301,7 +301,65 @@ export function Produtos() {
         </select>
       </div>
 
-      <div className="overflow-hidden rounded-md border border-slate-200 bg-white">
+      <div className="grid grid-cols-2 gap-3 md:hidden">
+        {produtosQuery.isLoading && (
+          <div className="col-span-2 rounded-lg border border-slate-200 p-4 text-center text-sm text-slate-500">
+            Carregando produtos...
+          </div>
+        )}
+        {produtosQuery.isError && (
+          <div className="col-span-2 rounded-lg border border-red-200 bg-red-50 p-4 text-center text-sm text-red-600">
+            Não foi possível carregar os produtos.
+          </div>
+        )}
+        {produtosQuery.data?.length === 0 && (
+          <div className="col-span-2 rounded-lg border border-slate-200 p-4 text-center text-sm text-slate-500">
+            Nenhum produto encontrado.
+          </div>
+        )}
+        {produtosQuery.data?.map(produto => (
+          <div key={produto.id} className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+            <div className="aspect-square bg-slate-100">
+              {produto.photoUrl ? (
+                <img src={produto.photoUrl} alt={produto.name} className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center">
+                  <ImagePlus size={28} className="text-slate-300" />
+                </div>
+              )}
+            </div>
+            <div className="space-y-1 p-3">
+              <h3 className="line-clamp-2 text-sm font-semibold text-slate-800">{produto.name}</h3>
+              <p className="text-xs text-slate-500">{produto.code}</p>
+              <p className="text-xs text-slate-500">{produto.color} / {produto.size}</p>
+              <p className="font-bold text-amber-600">{formatCurrency(produto.price)}</p>
+              <p className={`text-xs ${produto.units <= 3 ? 'font-semibold text-red-600' : 'text-slate-500'}`}>
+                Estoque: {produto.units}
+              </p>
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => openStockModal(produto)}
+                  className="inline-flex h-9 flex-1 items-center justify-center rounded-md border border-slate-200 text-slate-500 hover:border-amber-600 hover:text-amber-600"
+                  title="Ajustar estoque"
+                >
+                  <SlidersHorizontal size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openEditModal(produto)}
+                  className="inline-flex h-9 flex-1 items-center justify-center rounded-md border border-slate-200 text-slate-500 hover:border-amber-600 hover:text-amber-600"
+                  title="Editar"
+                >
+                  <Edit2 size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="hidden overflow-hidden rounded-md border border-slate-200 bg-white md:block">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200 text-sm">
             <thead className="bg-slate-50">
@@ -386,8 +444,8 @@ export function Produtos() {
 
       {/* Modal Produto */}
       {productModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
-          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-md border border-slate-200 bg-white shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-0 sm:p-4">
+          <div className="h-full w-full overflow-y-auto rounded-none border border-slate-200 bg-white shadow-xl sm:max-h-[90vh] sm:max-w-4xl sm:rounded-md">
             <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
               <div>
                 <h2 className="text-lg font-semibold text-slate-800">
@@ -521,8 +579,8 @@ export function Produtos() {
 
       {/* Modal Estoque */}
       {stockModalOpen && stockProduto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
-          <div className="w-full max-w-lg rounded-md border border-slate-200 bg-white shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-0 sm:p-4">
+          <div className="h-full w-full overflow-y-auto rounded-none border border-slate-200 bg-white shadow-xl sm:h-auto sm:max-w-lg sm:rounded-md">
             <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
               <div>
                 <h2 className="text-lg font-semibold text-slate-800">Ajuste de Estoque</h2>

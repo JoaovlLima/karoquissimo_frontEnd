@@ -11,6 +11,7 @@ import { Configuracoes } from './pages/Configuracoes';
 import { Vendas } from './pages/Vendas';
 import { Parcelas } from './pages/Parcelas';
 import { Dashboard } from './pages/Dashboard';
+import { Catalogo } from './pages/Catalogo';
 import { Relatorios } from './pages/DashboardPlaceholder';
 
 // Initialize React Query Client
@@ -31,6 +32,7 @@ const App: React.FC = () => {
           <Routes>
             {/* Public Routes */}
             <Route path="/login" element={<Login />} />
+            <Route path="/catalogo/:companyId" element={<Catalogo />} />
 
             {/* Guarded Private Layout Routes */}
             <Route element={<PrivateRoute />}>

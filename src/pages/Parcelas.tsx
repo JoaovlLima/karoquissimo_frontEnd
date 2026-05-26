@@ -89,13 +89,13 @@ export function Parcelas() {
   };
 
   return (
-    <div className="space-y-6 bg-white text-slate-800">
+    <div className="space-y-6 bg-white px-4 text-slate-800 md:px-0">
       <div>
         <h1 className="text-2xl font-bold text-slate-800">Parcelas</h1>
         <p className="text-sm text-slate-500">Acompanhamento financeiro e baixa de pagamentos.</p>
       </div>
 
-      <div className="grid gap-3 rounded-md border border-slate-200 bg-white p-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 rounded-md border border-slate-200 bg-white p-4 md:grid-cols-2">
         <label className="space-y-1.5">
           <span className="text-sm font-medium text-slate-800">Status</span>
           <select
@@ -127,7 +127,80 @@ export function Parcelas() {
         </p>
       )}
 
-      <div className="overflow-hidden rounded-md border border-slate-200 bg-white">
+      <div className="space-y-3 md:hidden">
+        {parcelasQuery.isLoading && (
+          <div className="rounded-lg border border-slate-200 p-4 text-center text-sm text-slate-500">
+            Carregando parcelas...
+          </div>
+        )}
+        {parcelasQuery.isError && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center text-sm text-red-600">
+            Não foi possível carregar as parcelas.
+          </div>
+        )}
+        {parcelasQuery.data?.length === 0 && (
+          <div className="rounded-lg border border-slate-200 p-4 text-center text-sm text-slate-500">
+            Nenhuma parcela encontrada.
+          </div>
+        )}
+        {parcelasQuery.data?.map(parcela => {
+          const overdue = isOverdue(parcela);
+          const visualStatus = overdue ? 'OVERDUE' : parcela.status;
+          const paid = parcela.status === 'PAID';
+
+          return (
+            <div
+              key={parcela.id}
+              className={`rounded-lg border border-slate-200 p-4 ${overdue ? 'bg-red-50' : 'bg-white'} ${paid ? 'text-slate-400' : ''}`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className={`font-semibold ${paid ? 'text-slate-400' : 'text-slate-800'}`}>
+                    {parcela.sale.documentNumber} · Parcela {parcela.number}
+                  </h3>
+                  <p className={paid ? 'text-sm text-slate-400' : 'text-sm text-slate-500'}>
+                    {parcela.sale.client.fullName}
+                  </p>
+                </div>
+                <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${statusClasses[visualStatus]}`}>
+                  {statusLabels[visualStatus]}
+                </span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <p className="text-slate-500">Vencimento</p>
+                  <p className={overdue ? 'font-semibold text-red-700' : paid ? 'text-slate-400' : 'text-slate-800'}>
+                    {formatDate(parcela.dueDate)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-slate-500">Valor</p>
+                  <p className={paid ? 'font-semibold text-slate-400' : 'font-semibold text-slate-800'}>
+                    {formatCurrency(parcela.value)}
+                  </p>
+                </div>
+              </div>
+              {!paid && (
+                <button
+                  type="button"
+                  onClick={() => handlePagar(parcela)}
+                  disabled={pagarMutation.isPending}
+                  className="mt-4 inline-flex h-9 w-full items-center justify-center gap-2 rounded-md bg-amber-600 px-3 text-sm font-semibold text-white transition-colors hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {pagarMutation.isPending ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <CheckCircle2 size={16} />
+                  )}
+                  Marcar como pago
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="hidden overflow-hidden rounded-md border border-slate-200 bg-white md:block">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200 text-sm">
             <thead className="bg-slate-50">

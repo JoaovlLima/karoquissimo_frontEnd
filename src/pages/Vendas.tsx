@@ -232,7 +232,7 @@ export function Vendas() {
   };
 
   return (
-    <div className="space-y-6 bg-white text-slate-800">
+    <div className="space-y-6 bg-white px-4 text-slate-800 md:px-0">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Vendas</h1>
@@ -260,7 +260,52 @@ export function Vendas() {
       </div>
 
       {view === 'lista' && (
-        <div className="overflow-hidden rounded-md border border-slate-200 bg-white">
+        <>
+        <div className="space-y-3 md:hidden">
+          {vendasQuery.isLoading && (
+            <div className="rounded-lg border border-slate-200 p-4 text-center text-sm text-slate-500">
+              Carregando vendas...
+            </div>
+          )}
+          {vendasQuery.isError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center text-sm text-red-600">
+              Não foi possível carregar as vendas.
+            </div>
+          )}
+          {vendasQuery.data?.length === 0 && (
+            <div className="rounded-lg border border-slate-200 p-4 text-center text-sm text-slate-500">
+              Nenhuma venda registrada.
+            </div>
+          )}
+          {vendasQuery.data?.map(sale => (
+            <div key={sale.id} className="rounded-lg border border-slate-200 bg-white p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="font-semibold text-slate-800">{sale.documentNumber}</h3>
+                  <p className="text-sm text-slate-500">{sale.client.fullName}</p>
+                  <p className="text-xs text-slate-500">{formatDate(sale.createdAt)}</p>
+                </div>
+                <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${statusClasses[sale.status]}`}>
+                  {statusLabels[sale.status]}
+                </span>
+              </div>
+              <div className="mt-3 flex items-center justify-between">
+                <span className="text-sm text-slate-500">Total</span>
+                <span className="font-bold text-slate-800">{formatCurrency(sale.totalValue)}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => openDetail(sale.id)}
+                className="mt-4 inline-flex h-9 w-full items-center justify-center gap-2 rounded-md border border-slate-200 text-sm font-semibold text-slate-800 hover:border-amber-600 hover:text-amber-600"
+              >
+                <Eye size={16} />
+                Ver detalhes
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="hidden overflow-hidden rounded-md border border-slate-200 bg-white md:block">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-slate-200 text-sm">
               <thead className="bg-slate-50">
@@ -326,6 +371,7 @@ export function Vendas() {
             </table>
           </div>
         </div>
+        </>
       )}
 
       {view === 'formulario' && (
@@ -492,7 +538,7 @@ export function Vendas() {
       )}
 
       {view === 'detalhe' && (
-        <div className="space-y-5">
+        <div className="fixed inset-x-0 bottom-0 top-10 z-50 space-y-5 overflow-y-auto rounded-t-2xl border border-slate-200 bg-white p-4 shadow-2xl md:static md:rounded-none md:border-0 md:p-0 md:shadow-none">
           {vendaDetailQuery.isLoading && (
             <div className="rounded-md border border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">
               Carregando venda...

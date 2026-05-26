@@ -54,7 +54,9 @@ export const Login: React.FC = () => {
           login('mock-jwt-token-dev', {
             id: 1,
             name: 'Fernanda',
-            email: 'fernanda@karoquissimo.com',
+            email: 'fernanda@karoquissimo.com.br',
+            companyId: 1,
+            companyName: 'Karoquíssimo',
           });
           navigate('/');
           setIsLoading(false);
@@ -81,9 +83,9 @@ export const Login: React.FC = () => {
             <Store size={32} />
           </div>
           <div className="text-center">
-            <h1 className="text-xl font-bold text-slate-900">Karoquíssimo</h1>
+            <h1 className="text-xl font-bold text-slate-900">CodaraStoke</h1>
             <p className="text-slate-500 text-sm mt-0.5">
-              Gerenciamento de Estoque e Clientes
+              Gestão de estoque para sua loja
             </p>
           </div>
         </div>
@@ -174,7 +176,7 @@ export const Login: React.FC = () => {
               Credenciais de Teste
             </p>
             <code className="text-[11px] bg-slate-50 border border-slate-200 px-2 py-1 rounded text-amber-700 block mt-1.5 select-all">
-              fernanda@karoquissimo.com / Fernanda@2026
+              fernanda@karoquissimo.com.br / karoquissimo123
             </code>
           </div>
         )}

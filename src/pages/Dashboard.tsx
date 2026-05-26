@@ -95,21 +95,21 @@ export function Dashboard() {
   });
 
   return (
-    <div className="space-y-6 bg-white text-slate-800">
+    <div className="space-y-6 bg-white px-4 text-slate-800 md:px-0">
       <div>
         <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
         <p className="text-sm text-slate-500">Resumo operacional diário.</p>
       </div>
 
       {statsQuery.isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
           <SkeletonLine />
           <SkeletonLine />
           <SkeletonLine />
           <SkeletonLine />
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
           <StatCard
             title="Total Clientes"
             value={statsQuery.data?.totalClientes ?? 0}
@@ -155,7 +155,27 @@ export function Dashboard() {
             <SkeletonLine />
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <div className="space-y-3 p-4 md:hidden">
+            {parcelasQuery.data?.length === 0 && (
+              <div className="py-4 text-center text-sm text-slate-400">
+                Nenhuma parcela vencendo nos próximos 7 dias
+              </div>
+            )}
+            {parcelasQuery.data?.map(parcela => (
+              <div key={parcela.id} className="rounded-lg border border-slate-200 bg-white p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-slate-800">{parcela.sale.client.fullName}</p>
+                    <p className="text-xs text-slate-500">{parcela.sale.documentNumber}</p>
+                  </div>
+                  <p className="font-semibold text-slate-800">{formatCurrency(parcela.value)}</p>
+                </div>
+                <p className="mt-2 text-sm text-slate-500">{formatDate(parcela.dueDate)}</p>
+              </div>
+            ))}
+          </div>
+          <div className="hidden overflow-x-auto md:block">
             <table className="min-w-full divide-y divide-slate-200 text-sm">
               <thead className="bg-slate-50">
                 <tr>
@@ -184,6 +204,7 @@ export function Dashboard() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </section>
 
@@ -205,7 +226,26 @@ export function Dashboard() {
             <SkeletonLine />
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <div className="space-y-3 p-4 md:hidden">
+            {estoqueQuery.data?.length === 0 && (
+              <div className="py-4 text-center text-sm text-slate-400">
+                Nenhum produto com estoque crítico
+              </div>
+            )}
+            {estoqueQuery.data?.map(produto => (
+              <div key={produto.id} className="rounded-lg border border-slate-200 bg-white p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-slate-800">{produto.name}</p>
+                    <p className="text-xs text-slate-500">{produto.code} · {produto.category.name}</p>
+                  </div>
+                  <p className="font-bold text-red-600">{produto.units}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="hidden overflow-x-auto md:block">
             <table className="min-w-full divide-y divide-slate-200 text-sm">
               <thead className="bg-slate-50">
                 <tr>
@@ -234,6 +274,7 @@ export function Dashboard() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </section>
     </div>
