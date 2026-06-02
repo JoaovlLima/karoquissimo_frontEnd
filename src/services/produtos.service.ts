@@ -30,6 +30,8 @@ export const produtosService = {
     api.put<Produto>(`/produtos/${id}`, data).then(r => r.data),
   ajustarEstoque: (id: number, data: { type: string; quantity: number; reason: string }) =>
     api.patch(`/produtos/${id}/estoque`, data).then(r => r.data),
+  remove: (id: number) =>
+    api.delete(`/produtos/${id}`).then(r => r.data),
 };
 
 export const categoriasService = {

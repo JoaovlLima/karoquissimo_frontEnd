@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
-import { Edit2, ImagePlus, Loader2, PackagePlus, Plus, Search, SlidersHorizontal, X } from 'lucide-react';
+import { Edit2, ImagePlus, Loader2, PackagePlus, Plus, Search, SlidersHorizontal, Trash2, X } from 'lucide-react';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { z } from 'zod';
 import { categoriasService, produtosService } from '../services/produtos.service';
 import type { Categoria, Produto } from '../services/produtos.service';
@@ -98,6 +99,8 @@ export function Produtos() {
   const [stockModalOpen, setStockModalOpen] = useState(false);
   const [editingProduto, setEditingProduto] = useState<Produto | null>(null);
   const [stockProduto, setStockProduto] = useState<Produto | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<Produto | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
 
   // foto
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -142,6 +145,19 @@ export function Produtos() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['produtos'] });
       closeStockModal();
+    },
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: (id: number) => produtosService.remove(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['produtos'] });
+      setRemoveTarget(null);
+      setRemoveError(null);
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || 'Não foi possível excluir o produto.';
+      setRemoveError(msg);
     },
   });
 
@@ -353,6 +369,15 @@ export function Produtos() {
                 >
                   <Edit2 size={16} />
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setRemoveTarget(produto)}
+                  disabled={removeMutation.isPending}
+                  className="inline-flex h-9 flex-1 items-center justify-center rounded-md border border-slate-200 text-slate-500 hover:border-red-500 hover:text-red-600 disabled:opacity-50"
+                  title="Excluir"
+                >
+                  <Trash2 size={16} />
+                </button>
               </div>
             </div>
           </div>
@@ -432,6 +457,15 @@ export function Produtos() {
                         title="Editar"
                       >
                         <Edit2 size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRemoveTarget(produto)}
+                        disabled={removeMutation.isPending}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 text-slate-500 transition-colors hover:border-red-500 hover:text-red-600 disabled:opacity-50"
+                        title="Excluir produto"
+                      >
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </td>
@@ -576,6 +610,21 @@ export function Produtos() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={!!removeTarget}
+        variant="danger"
+        title="Excluir produto"
+        description={`"${removeTarget?.name}" será excluído permanentemente. Esta ação não pode ser desfeita.`}
+        confirmLabel="Excluir produto"
+        errorMessage={removeError ?? undefined}
+        isLoading={removeMutation.isPending}
+        onConfirm={() => removeTarget && removeMutation.mutate(removeTarget.id)}
+        onCancel={() => {
+          setRemoveTarget(null);
+          setRemoveError(null);
+        }}
+      />
 
       {/* Modal Estoque */}
       {stockModalOpen && stockProduto && (

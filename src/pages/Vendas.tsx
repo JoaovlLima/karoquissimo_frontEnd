@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Eye, FileText, Loader2, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Eye, FileText, Loader2, Plus, Trash2, XCircle } from 'lucide-react';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { clientesService } from '../services/clientes.service';
 import type { Cliente } from '../services/clientes.service';
 import { produtosService } from '../services/produtos.service';
@@ -126,6 +127,7 @@ export function Vendas() {
   const [numeroParcelas, setNumeroParcelas] = useState(1);
   const [dataVencimento1, setDataVencimento1] = useState(todayInput());
   const [observacao, setObservacao] = useState('');
+  const [cancelarTarget, setCancelarTarget] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
   const vendasQuery = useQuery<VendaListItem[]>({
@@ -157,6 +159,17 @@ export function Vendas() {
       resetForm();
       setView('lista');
     },
+  });
+
+  const cancelarMutation = useMutation({
+    mutationFn: (id: number) => vendasService.cancelar(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vendas'] });
+      queryClient.invalidateQueries({ queryKey: ['produtos'] });
+      queryClient.invalidateQueries({ queryKey: ['parcelas'] });
+      setCancelarTarget(null);
+    },
+    onError: () => setCancelarTarget(null),
   });
 
   const productsById = useMemo(() => {
@@ -549,7 +562,23 @@ export function Vendas() {
             <>
               <section className="rounded-md border border-slate-200 bg-white p-5">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <h2 className="text-lg font-semibold text-slate-800">{vendaDetailQuery.data.documentNumber}</h2>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-lg font-semibold text-slate-800">{vendaDetailQuery.data.documentNumber}</h2>
+                    <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${statusClasses[vendaDetailQuery.data.status]}`}>
+                      {statusLabels[vendaDetailQuery.data.status]}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                  {vendaDetailQuery.data.status === 'PENDING' && (
+                    <button
+                      type="button"
+                      onClick={() => setCancelarTarget(vendaDetailQuery.data!.id)}
+                      className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 transition-colors"
+                    >
+                      <XCircle size={15} />
+                      Cancelar Venda
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       const venda = vendaDetailQuery.data!;
@@ -586,6 +615,7 @@ export function Vendas() {
                     <FileText size={15} />
                     Imprimir Promissória
                   </button>
+                  </div>
                 </div>
                 <div className="mt-4 grid gap-3 text-sm md:grid-cols-3">
                   <div><span className="text-slate-500">Cliente: </span><span className="font-medium text-slate-800">{vendaDetailQuery.data.client.fullName}</span></div>
@@ -655,6 +685,16 @@ export function Vendas() {
           )}
         </div>
       )}
+      <ConfirmDialog
+        isOpen={cancelarTarget !== null}
+        variant="warning"
+        title="Cancelar venda"
+        description="O estoque dos produtos será revertido e as parcelas pendentes serão removidas. Esta ação não pode ser desfeita."
+        confirmLabel="Cancelar venda"
+        isLoading={cancelarMutation.isPending}
+        onConfirm={() => cancelarTarget !== null && cancelarMutation.mutate(cancelarTarget)}
+        onCancel={() => setCancelarTarget(null)}
+      />
     </div>
   );
 }

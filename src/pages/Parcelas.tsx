@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CheckCircle2, Loader2 } from 'lucide-react';
+import { CheckCircle2, Loader2, RotateCcw } from 'lucide-react';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { parcelasService } from '../services/parcelas.service';
 
 type InstallmentStatus = 'PENDING' | 'PAID' | 'OVERDUE';
@@ -57,6 +58,8 @@ function isOverdue(parcela: Parcela) {
 }
 
 export function Parcelas() {
+  const [pagarTarget, setPagarTarget] = useState<Parcela | null>(null);
+  const [estornarTarget, setEstornarTarget] = useState<Parcela | null>(null);
   const [status, setStatus] = useState('');
   const [vencimentoAte, setVencimentoAte] = useState('');
   const queryClient = useQueryClient();
@@ -79,14 +82,20 @@ export function Parcelas() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['parcelas'] });
       queryClient.invalidateQueries({ queryKey: ['vendas'] });
+      setPagarTarget(null);
     },
+    onError: () => setPagarTarget(null),
   });
 
-  const handlePagar = (parcela: Parcela) => {
-    if (window.confirm(`Confirmar recebimento de ${formatCurrency(parcela.value)}?`)) {
-      pagarMutation.mutate(parcela.id);
-    }
-  };
+  const estornarMutation = useMutation({
+    mutationFn: (id: number) => parcelasService.estornar(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['parcelas'] });
+      queryClient.invalidateQueries({ queryKey: ['vendas'] });
+      setEstornarTarget(null);
+    },
+    onError: () => setEstornarTarget(null),
+  });
 
   return (
     <div className="space-y-6 bg-white px-4 text-slate-800 md:px-0">
@@ -183,16 +192,23 @@ export function Parcelas() {
               {!paid && (
                 <button
                   type="button"
-                  onClick={() => handlePagar(parcela)}
+                  onClick={() => setPagarTarget(parcela)}
                   disabled={pagarMutation.isPending}
                   className="mt-4 inline-flex h-9 w-full items-center justify-center gap-2 rounded-md bg-amber-600 px-3 text-sm font-semibold text-white transition-colors hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {pagarMutation.isPending ? (
-                    <Loader2 size={16} className="animate-spin" />
-                  ) : (
-                    <CheckCircle2 size={16} />
-                  )}
+                  {pagarMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
                   Marcar como pago
+                </button>
+              )}
+              {paid && (
+                <button
+                  type="button"
+                  onClick={() => setEstornarTarget(parcela)}
+                  disabled={estornarMutation.isPending}
+                  className="mt-4 inline-flex h-9 w-full items-center justify-center gap-2 rounded-md border border-slate-200 px-3 text-sm font-semibold text-slate-600 transition-colors hover:border-red-300 hover:text-red-600 disabled:opacity-50"
+                >
+                  {estornarMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <RotateCcw size={16} />}
+                  Estornar
                 </button>
               )}
             </div>
@@ -277,16 +293,23 @@ export function Parcelas() {
                       {!paid && (
                         <button
                           type="button"
-                          onClick={() => handlePagar(parcela)}
+                          onClick={() => setPagarTarget(parcela)}
                           disabled={pagarMutation.isPending}
                           className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-amber-600 px-3 text-sm font-semibold text-white transition-colors hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-70"
                         >
-                          {pagarMutation.isPending ? (
-                            <Loader2 size={16} className="animate-spin" />
-                          ) : (
-                            <CheckCircle2 size={16} />
-                          )}
+                          {pagarMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
                           Registrar Pagamento
+                        </button>
+                      )}
+                      {paid && (
+                        <button
+                          type="button"
+                          onClick={() => setEstornarTarget(parcela)}
+                          disabled={estornarMutation.isPending}
+                          className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-slate-200 px-3 text-sm font-semibold text-slate-600 transition-colors hover:border-red-300 hover:text-red-600 disabled:opacity-50"
+                        >
+                          {estornarMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <RotateCcw size={16} />}
+                          Estornar
                         </button>
                       )}
                     </td>
@@ -297,6 +320,27 @@ export function Parcelas() {
           </table>
         </div>
       </div>
+      <ConfirmDialog
+        isOpen={!!pagarTarget}
+        variant="warning"
+        title="Confirmar recebimento"
+        description={`Registrar pagamento de ${pagarTarget ? formatCurrency(pagarTarget.value) : ''} referente à parcela ${pagarTarget?.number} da venda ${pagarTarget?.sale.documentNumber}?`}
+        confirmLabel="Confirmar pagamento"
+        isLoading={pagarMutation.isPending}
+        onConfirm={() => pagarTarget && pagarMutation.mutate(pagarTarget.id)}
+        onCancel={() => setPagarTarget(null)}
+      />
+
+      <ConfirmDialog
+        isOpen={!!estornarTarget}
+        variant="danger"
+        title="Estornar pagamento"
+        description={`Estornar ${estornarTarget ? formatCurrency(estornarTarget.value) : ''} da parcela ${estornarTarget?.number}? O valor voltará como pendente na venda.`}
+        confirmLabel="Confirmar estorno"
+        isLoading={estornarMutation.isPending}
+        onConfirm={() => estornarTarget && estornarMutation.mutate(estornarTarget.id)}
+        onCancel={() => setEstornarTarget(null)}
+      />
     </div>
   );
 }
