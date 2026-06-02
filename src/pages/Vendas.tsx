@@ -128,6 +128,7 @@ export function Vendas() {
   const [dataVencimento1, setDataVencimento1] = useState(todayInput());
   const [observacao, setObservacao] = useState('');
   const [cancelarTarget, setCancelarTarget] = useState<number | null>(null);
+  const [deletarTarget, setDeletarTarget] = useState<number | null>(null);
   const queryClient = useQueryClient();
 
   const vendasQuery = useQuery<VendaListItem[]>({
@@ -170,6 +171,18 @@ export function Vendas() {
       setCancelarTarget(null);
     },
     onError: () => setCancelarTarget(null),
+  });
+
+  const deletarMutation = useMutation({
+    mutationFn: (id: number) => vendasService.deletar(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vendas'] });
+      queryClient.invalidateQueries({ queryKey: ['produtos'] });
+      queryClient.invalidateQueries({ queryKey: ['parcelas'] });
+      setDeletarTarget(null);
+      setView('lista');
+    },
+    onError: () => setDeletarTarget(null),
   });
 
   const productsById = useMemo(() => {
@@ -580,6 +593,14 @@ export function Vendas() {
                     </button>
                   )}
                   <button
+                    type="button"
+                    onClick={() => setDeletarTarget(vendaDetailQuery.data!.id)}
+                    className="inline-flex items-center gap-2 rounded-lg border border-red-300 bg-red-100 px-4 py-2 text-sm font-semibold text-red-800 hover:bg-red-200 transition-colors"
+                  >
+                    <Trash2 size={15} />
+                    Excluir Venda
+                  </button>
+                  <button
                     onClick={() => {
                       const venda = vendaDetailQuery.data!;
                       api.get<EmpresaPromissoria>('/empresa').then(res => {
@@ -694,6 +715,16 @@ export function Vendas() {
         isLoading={cancelarMutation.isPending}
         onConfirm={() => cancelarTarget !== null && cancelarMutation.mutate(cancelarTarget)}
         onCancel={() => setCancelarTarget(null)}
+      />
+      <ConfirmDialog
+        isOpen={deletarTarget !== null}
+        variant="danger"
+        title="Excluir venda permanentemente"
+        description="A venda será removida do sistema e o estoque restaurado (se ainda não estava cancelada). Esta ação não pode ser desfeita."
+        confirmLabel="Excluir venda"
+        isLoading={deletarMutation.isPending}
+        onConfirm={() => deletarTarget !== null && deletarMutation.mutate(deletarTarget)}
+        onCancel={() => setDeletarTarget(null)}
       />
     </div>
   );
