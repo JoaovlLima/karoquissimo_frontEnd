@@ -11,7 +11,6 @@ import { uploadProdutoFoto } from '../utils/supabaseStorage';
 import type { Produto as ProdutoType } from '../services/produtos.service';
 
 const produtoSchema = z.object({
-  code: z.string().min(1, 'Informe o código').max(50),
   name: z.string().min(2, 'Informe pelo menos 2 caracteres').max(150),
   categoryId: z.coerce.number().int().min(1, 'Selecione uma categoria'),
   color: z.string().min(1, 'Informe a cor'),
@@ -32,7 +31,6 @@ type ProdutoFormData = z.infer<typeof produtoSchema>;
 type EstoqueFormData = z.infer<typeof estoqueSchema>;
 
 const emptyProdutoForm: ProdutoFormData = {
-  code: '',
   name: '',
   categoryId: 0,
   color: '',
@@ -65,7 +63,6 @@ function toDateInput(value?: string) {
 
 function toProdutoForm(produto: Produto): ProdutoFormData {
   return {
-    code: produto.code,
     name: produto.name,
     categoryId: produto.categoryId,
     color: produto.color,
@@ -79,7 +76,6 @@ function toProdutoForm(produto: Produto): ProdutoFormData {
 
 function toProdutoPayload(data: ProdutoFormData, photoUrl?: string | null) {
   return {
-    code: data.code.trim(),
     name: data.name.trim(),
     categoryId: data.categoryId,
     color: data.color.trim(),
@@ -266,7 +262,6 @@ export function Produtos() {
     type?: string;
     className?: string;
   }> = [
-    { name: 'code', label: 'Código' },
     { name: 'name', label: 'Nome', className: 'md:col-span-2' },
     { name: 'color', label: 'Cor' },
     { name: 'size', label: 'Tamanho' },
